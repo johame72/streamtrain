@@ -1,12 +1,13 @@
+// stream-response.js
 /**
  * This code demonstrates how to use the OpenAI API to generate chat completions.
  * The generated completions are received as a stream of data from the API and the
  * code includes functionality to handle errors and abort requests using an AbortController.
- * The API_KEY variable needs to be updated with the appropriate value from OpenAI for successful API communication.
+ * The OPENAI_API_KEY variable needs to be updated with the appropriate value from OpenAI for successful API communication.
  */
 
 const API_URL = "https://api.openai.com/v1/chat/completions";
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_KEY = "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";
 
 const promptInput = document.getElementById("promptInput");
 const generateBtn = document.getElementById("generateBtn");
@@ -37,12 +38,12 @@ const generate = async () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4-1106-preview",
         messages: [{ role: "user", content: promptInput.value }],
-        max_tokens: 100,
+        max_tokens: 1000,
         stream: true, // For streaming responses
       }),
       signal, // Pass the signal to the fetch request

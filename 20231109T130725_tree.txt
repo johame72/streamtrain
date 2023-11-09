@@ -1,0 +1,11 @@
+ai-javascript
++--- node_modules
++--- .env
++--- .gitignore
++--- favicon.ico
++--- index.html
++--- index.js
++--- package-lock.json
++--- package.json
++--- stream-response.js
++--- tailwind.config.js
