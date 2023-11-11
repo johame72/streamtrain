@@ -10,88 +10,87 @@ const resultText = document.getElementById("resultText");
 let controller = null;
 
 const generate = async () => {
-  if (!promptInput.value) {
-    alert("Please enter a prompt.");
-    return;
-  }
+    if (!promptInput.value) {
+        alert("Please enter a prompt.");
+        return;
+    }
 
-  generateBtn.disabled = true;
-  stopBtn.disabled = false;
-  resultText.innerText = "Generating...";
+    generateBtn.disabled = true;
+    stopBtn.disabled = false;
+    resultText.innerText = "Generating...";
 
-  controller = new AbortController();
-  const signal = controller.signal;
+    controller = new AbortController();
+    const signal = controller.signal;
 
-  try {
-    // Call the serverless function endpoint instead of the OpenAI API directly
-    const response = await fetch('/api/openai', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: promptInput.value }),
-      signal,
-    });
+    try {
+        const response = await fetch('/api/openai', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: promptInput.value }),
+            signal,
+        });
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    resultText.innerText = "";
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        resultText.innerText = "";
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+                break;
+            }
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split("\n");
-      const parsedLines = lines
-        .map(line => line.replace(/^data: /, "").trim())
-        .filter(line => line !== "" && line !== "[DONE]")
-        .map(line => JSON.parse(line));
+            const chunk = decoder.decode(value);
+            const lines = chunk.split("\n");
+            const parsedLines = lines
+                .map(line => line.replace(/^data: /, "").trim())
+                .filter(line => line !== "" && line !== "[DONE]")
+                .map(line => JSON.parse(line));
 
-      for (const parsedLine of parsedLines) {
-        const { content } = parsedLine;
-        if (content) {
-          resultText.innerText += content;
+            for (const parsedLine of parsedLines) {
+                const { content } = parsedLine;
+                if (content) {
+                    resultText.innerText += content;
+                }
+            }
         }
-      }
+    } catch (error) {
+        if (signal.aborted) {
+            resultText.innerText = "Request aborted.";
+        } else {
+            console.error("Error:", error);
+            resultText.innerText = "Error occurred while generating.";
+        }
+    } finally {
+        generateBtn.disabled = false;
+        stopBtn.disabled = true;
+        controller = null;
     }
-  } catch (error) {
-    if (signal.aborted) {
-      resultText.innerText = "Request aborted.";
-    } else {
-      console.error("Error:", error);
-      resultText.innerText = "Error occurred while generating.";
-    }
-  } finally {
-    generateBtn.disabled = false;
-    stopBtn.disabled = true;
-    controller = null;
-  }
 };
 
 const stop = () => {
-  if (controller) {
-    controller.abort();
-    controller = null;
-  }
+    if (controller) {
+        controller.abort();
+        controller = null;
+    }
 };
 
 const copyText = () => {
-  navigator.clipboard.writeText(resultText.innerText).then(() => {
-    alert("Text copied to clipboard!");
-  }).catch(err => {
-    console.error("Error copying text to clipboard:", err);
-  });
+    navigator.clipboard.writeText(resultText.innerText).then(() => {
+        alert("Text copied to clipboard!");
+    }).catch(err => {
+        console.error("Error copying text to clipboard:", err);
+    });
 };
 
 const clearText = () => {
-  resultText.innerText = "";
+    resultText.innerText = "";
 };
 
 promptInput.addEventListener("keyup", event => {
-  if (event.key === "Enter") {
-    generate();
-  }
+    if (event.key === "Enter") {
+        generate();
+    }
 });
 generateBtn.addEventListener("click", generate);
 stopBtn.addEventListener("click", stop);
