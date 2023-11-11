@@ -15,14 +15,14 @@
       <h1 class="text-3xl font-bold mb-6">
         Streaming OpenAI API Completions in JavaScript
       </h1>
-      <div id="resultContainer" class="mt-4 h-48 overflow-y-auto">
+      <div id="resultContainer" class="mt-4 h-[18rem] overflow-y-auto">
         <p class="text-gray-500 text-sm mb-2">Generated Text</p>
         <p id="resultText" class="whitespace-pre-line"></p>
       </div>
       <input
         type="text"
         id="promptInput"
-        class="w-full px-4 py-2 rounded-md bg-gray-200 placeholder-gray-500 focus:outline-none mt-4"
+        class="w-full px-4 py-6 rounded-md bg-gray-200 placeholder-gray-500 focus:outline-none mt-4" <!-- Increased padding -->
         placeholder="Enter prompt..."
       />
       <div class="flex justify-center mt-4">
@@ -38,6 +38,18 @@
           class="w-1/2 px-4 py-2 rounded-md border border-gray-500 text-gray-500 hover:text-gray-700 hover:border-gray-700 focus:outline-none ml-2 disabled:opacity-75 disabled:cursor-not-allowed"
         >
           Stop
+        </button>
+        <button
+          id="copyBtn"
+          class="w-1/4 px-4 py-2 rounded-md bg-green-500 text-white hover:bg-green-700 focus:outline-none mr-2 disabled:opacity-75 disabled:cursor-not-allowed"
+        >
+          Copy
+        </button>
+        <button
+          id="clearBtn"
+          class="w-1/4 px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-700 focus:outline-none mr-2 disabled:opacity-75 disabled:cursor-not-allowed"
+        >
+          Clear
         </button>
       </div>
     </div>

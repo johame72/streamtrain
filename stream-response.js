@@ -1,55 +1,36 @@
-// stream-response.js
-/**
- * This code demonstrates how to use the OpenAI API to generate chat completions.
- * The generated completions are received as a stream of data from the API and the
- * code includes functionality to handle errors and abort requests using an AbortController.
- * The OPENAI_API_KEY variable needs to be updated with the appropriate value from OpenAI for successful API communication.
- */
-
-const API_URL = "https://api.openai.com/v1/chat/completions";
-const OPENAI_API_KEY = "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";
+// Client-Side JavaScript Code for Streaming OpenAI API Completions
 
 const promptInput = document.getElementById("promptInput");
 const generateBtn = document.getElementById("generateBtn");
 const stopBtn = document.getElementById("stopBtn");
+const copyBtn = document.getElementById("copyBtn");
+const clearBtn = document.getElementById("clearBtn");
 const resultText = document.getElementById("resultText");
 
-let controller = null; // Store the AbortController instance
+let controller = null;
 
 const generate = async () => {
-  // Alert the user if no prompt value
   if (!promptInput.value) {
     alert("Please enter a prompt.");
     return;
   }
 
-  // Disable the generate button and enable the stop button
   generateBtn.disabled = true;
   stopBtn.disabled = false;
   resultText.innerText = "Generating...";
 
-  // Create a new AbortController instance
   controller = new AbortController();
   const signal = controller.signal;
 
   try {
-    // Fetch the response from the OpenAI API with the signal from AbortController
-    const response = await fetch(API_URL, {
+    // Call the serverless function endpoint instead of the OpenAI API directly
+    const response = await fetch('/api/openai', {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4-1106-preview",
-        messages: [{ role: "user", content: promptInput.value }],
-        max_tokens: 1000,
-        stream: true, // For streaming responses
-      }),
-      signal, // Pass the signal to the fetch request
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: promptInput.value }),
+      signal,
     });
 
-    // Read the response as a stream of data
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
     resultText.innerText = "";
@@ -59,26 +40,22 @@ const generate = async () => {
       if (done) {
         break;
       }
-      // Massage and parse the chunk of data
+
       const chunk = decoder.decode(value);
       const lines = chunk.split("\n");
       const parsedLines = lines
-        .map((line) => line.replace(/^data: /, "").trim()) // Remove the "data: " prefix
-        .filter((line) => line !== "" && line !== "[DONE]") // Remove empty lines and "[DONE]"
-        .map((line) => JSON.parse(line)); // Parse the JSON string
+        .map(line => line.replace(/^data: /, "").trim())
+        .filter(line => line !== "" && line !== "[DONE]")
+        .map(line => JSON.parse(line));
 
       for (const parsedLine of parsedLines) {
-        const { choices } = parsedLine;
-        const { delta } = choices[0];
-        const { content } = delta;
-        // Update the UI with the new content
+        const { content } = parsedLine;
         if (content) {
           resultText.innerText += content;
         }
       }
     }
   } catch (error) {
-    // Handle fetch request errors
     if (signal.aborted) {
       resultText.innerText = "Request aborted.";
     } else {
@@ -86,25 +63,37 @@ const generate = async () => {
       resultText.innerText = "Error occurred while generating.";
     }
   } finally {
-    // Enable the generate button and disable the stop button
     generateBtn.disabled = false;
     stopBtn.disabled = true;
-    controller = null; // Reset the AbortController instance
+    controller = null;
   }
 };
 
 const stop = () => {
-  // Abort the fetch request by calling abort() on the AbortController instance
   if (controller) {
     controller.abort();
     controller = null;
   }
 };
 
-promptInput.addEventListener("keyup", (event) => {
+const copyText = () => {
+  navigator.clipboard.writeText(resultText.innerText).then(() => {
+    alert("Text copied to clipboard!");
+  }).catch(err => {
+    console.error("Error copying text to clipboard:", err);
+  });
+};
+
+const clearText = () => {
+  resultText.innerText = "";
+};
+
+promptInput.addEventListener("keyup", event => {
   if (event.key === "Enter") {
     generate();
   }
 });
 generateBtn.addEventListener("click", generate);
 stopBtn.addEventListener("click", stop);
+copyBtn.addEventListener("click", copyText);
+clearBtn.addEventListener("click", clearText);
