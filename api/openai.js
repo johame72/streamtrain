@@ -8,12 +8,18 @@ module.exports = async (req, res) => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
             },
-            body: JSON.stringify(req.body)
+            body: JSON.stringify({
+                model: "gpt-4",
+                messages: [{ role: "user", content: req.body.prompt }],
+                max_tokens: 3000,
+                stream: true,
+            })
         });
-        const data = await response.json();
-        res.status(200).send(data);
+
+        // Stream the response back to the client
+        response.body.pipe(res);
     } catch (error) {
         console.error(error);
-        res.status(500).send({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 };
